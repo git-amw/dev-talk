@@ -1,4 +1,4 @@
-# dev-talk a Concurrent TCP Chat Application
+# dev-talk a Real time TCP Chat Application
 
 This is a simple concurrent chat application built with Go, allowing multiple clients to join chat rooms, set their usernames, and communicate with others within specific rooms. The server supports basic functionality like listing active rooms, number of members in a room, creating or joining a room, and broadcasting messages within a room.
 
