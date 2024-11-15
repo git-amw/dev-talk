@@ -12,33 +12,54 @@ type ChatServer struct {
 	rooms              map[string]*Room
 	registerClientCh   chan *Client
 	unregisterClientCh chan *Client
+	connectionQueue    chan net.Conn
 	mutx               sync.Mutex
+	wg                 sync.WaitGroup
 }
 
-func NewChatServer() *ChatServer {
+func NewChatServer(poolSize int) *ChatServer {
 	return &ChatServer{
 		rooms:              make(map[string]*Room),
 		registerClientCh:   make(chan *Client),
 		unregisterClientCh: make(chan *Client),
+		connectionQueue:    make(chan net.Conn, poolSize),
 	}
 }
 
-func (srv *ChatServer) StartServer(port string) {
+func (srv *ChatServer) StartServer(port string, poolSize int) {
 	listener, err := net.Listen("tcp", ":7000")
 	if err != nil {
 		slog.Error("Error in listener", slog.Any("err", err))
 	}
 	defer listener.Close()
 	slog.Info("Server is up and running at :7000")
+
+	srv.startWorkerPool(poolSize)
 	go srv.hangleClientRegistration()
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
 			slog.Error("Error in Accepting new client", slog.Any("err", err))
 		}
 		slog.Info("Client", slog.Any("addr ", conn.RemoteAddr()))
-		go srv.HandleNewClient(conn)
+		srv.addToQueue(conn)
 	}
+}
+
+func (srv *ChatServer) startWorkerPool(poolSize int) {
+	for i := 0; i < poolSize; i++ {
+		go func() {
+			for conn := range srv.connectionQueue {
+				srv.HandleNewClient(conn)
+			}
+		}()
+	}
+}
+
+func (srv *ChatServer) addToQueue(conn net.Conn) {
+	srv.wg.Add(1)
+	srv.connectionQueue <- conn
 }
 
 func (srv *ChatServer) hangleClientRegistration() {
@@ -69,6 +90,9 @@ func (srv *ChatServer) HandleNewClient(conn net.Conn) {
 		server:    srv,
 	}
 	srv.registerClientCh <- client
-	go client.readInput()
 	go client.listenForMessages()
+	client.readInput()
+	defer close(client.messageCh)
+	defer srv.wg.Done()
+
 }

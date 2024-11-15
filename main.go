@@ -5,6 +5,7 @@ import (
 )
 
 func main() {
-	srv := chatapp.NewChatServer()
-	srv.StartServer("7000")
+	poolsize := 4 // set the maxm number of users can access at a given time
+	srv := chatapp.NewChatServer(poolsize)
+	srv.StartServer("7000", poolsize)
 }

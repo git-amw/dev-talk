@@ -32,7 +32,7 @@ func (r *Room) handleRoomCommand(client *Client, msg string) bool {
 	command := parts[0]
 	switch command {
 	case "/msg":
-		r.broadCastMessage(client, parts[1])
+		r.broadCastMessage(client, client.name+": "+parts[1])
 		return false
 	case "/leave":
 		r.removeMember(client)

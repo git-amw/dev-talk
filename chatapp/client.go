@@ -19,7 +19,7 @@ type Client struct {
 func (client *Client) readInput() {
 	for {
 		msg, err := bufio.NewReader(client.conn).ReadString('\n')
-		if err != nil { // work later on how to improve
+		if err != nil { // work later on, how to improve
 			slog.Error("Error in reading input", slog.Any("err ", err))
 			client.server.unregisterClientCh <- client
 			return
@@ -90,7 +90,7 @@ func (client *Client) joinRoom(roomName string) {
 
 	room.members[client.conn.RemoteAddr()] = client
 	client.room = room
-	room.broadCastMessage(client, client.name+" has joined the room.\r\n")
+	room.broadCastMessage(client, client.name+" : >  has joined the room.\r\n")
 	client.conn.Write([]byte("------  Joined - " + roomName + "------\r\n"))
 	room.roomCommands(client)
 }

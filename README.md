@@ -6,6 +6,8 @@ This is a simple concurrent chat application built with Go, allowing multiple cl
 
 > **Concurrent Client Handling**: Uses goroutines and channels to handle multiple clients simultaneously.
 
+> **Thread Pool Support**: The server uses a thread pool to handle client connections and requests, ensuring a limited number of concurrent goroutines.
+
 > **Room Management**: Allows clients to list available rooms, create new rooms, or join existing rooms.
 
 > **Broadcasting**: Messages are broadcasted to all clients within a specific room.
