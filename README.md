@@ -20,3 +20,12 @@ This is a simple concurrent chat application built with Go, allowing multiple cl
 | `/quit`               | Quit app                                                         |
 | `/msg`                | To send message in the room                                      |
 | `/leave`              | Leave a room                                                     |
+
+## Build and Run application
+
+```
+$ go build -o chat-app main.go
+
+$ ./chat-app
+
+```
