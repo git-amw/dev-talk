@@ -2,6 +2,7 @@ package chatapp
 
 import (
 	"bufio"
+	"log/slog"
 	"net"
 	"strings"
 )
@@ -12,13 +13,13 @@ type Room struct {
 }
 
 func (r *Room) roomCommands(client *Client) {
-	client.conn.Write([]byte("## Room Command ##"))
+	client.conn.Write([]byte("## Room Command ## \r\n"))
 	client.conn.Write([]byte("1. /msg [your message] To send message \r\n"))
 	client.conn.Write([]byte("2. /leave Leave current room \r\n"))
 	for {
 		msg, err := bufio.NewReader(client.conn).ReadString('\n')
 		if err != nil {
-
+			slog.Error("Error in reading room cmd", slog.Any("err ", err))
 		}
 		if r.handleRoomCommand(client, strings.TrimSpace(msg)) {
 			return
@@ -50,16 +51,14 @@ func (r *Room) removeMember(client *Client) {
 		delete(client.server.rooms, r.name)
 	}
 	client.server.mutx.Unlock()
+	client.conn.Write([]byte("You've left the " + r.name + "\r\n"))
 	r.broadCastMessage(client, client.name+" has left the room.\r\n")
-	/* if len(r.members) == 0 {
-		close(room.broadcastCh)
-	} */
 }
 
 func (r *Room) broadCastMessage(sender *Client, msg string) {
 	for addr, client := range r.members {
 		if sender.conn.RemoteAddr() != addr {
-			client.listenForMessages(msg)
+			client.messageCh <- msg
 		}
 	}
 }

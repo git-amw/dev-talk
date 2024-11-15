@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"log/slog"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -57,8 +58,8 @@ func (client *Client) listRooms() {
 		return
 	}
 	client.conn.Write([]byte("Active rooms:\r\n"))
-	for name := range client.server.rooms {
-		client.conn.Write([]byte(" - " + name + "\r\n"))
+	for name, r := range client.server.rooms {
+		client.conn.Write([]byte(" - " + name + " online :" + strconv.Itoa(len(r.members)) + "\r\n"))
 	}
 }
 
@@ -83,20 +84,19 @@ func (client *Client) joinRoom(roomName string) {
 	room, exists := client.server.rooms[roomName]
 	client.server.mutx.Unlock()
 	if !exists {
-		client.conn.Write([]byte("Room - " + roomName + "does not exists\r\n"))
+		client.conn.Write([]byte("Room - " + roomName + " does not exists\r\n"))
 		return
 	}
 
 	room.members[client.conn.RemoteAddr()] = client
 	client.room = room
 	room.broadCastMessage(client, client.name+" has joined the room.\r\n")
-	client.conn.Write([]byte("Joined - " + roomName + "\r\n"))
+	client.conn.Write([]byte("------  Joined - " + roomName + "------\r\n"))
 	room.roomCommands(client)
 }
 
-func (client *Client) listenForMessages(msg string) {
-	/* for msg := range client.messageCh {
+func (client *Client) listenForMessages() {
+	for msg := range client.messageCh {
 		client.conn.Write([]byte(msg + "\r\n"))
-	} */
-	client.conn.Write([]byte(msg + "\r\n"))
+	}
 }

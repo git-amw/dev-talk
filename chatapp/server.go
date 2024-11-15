@@ -70,5 +70,5 @@ func (srv *ChatServer) HandleNewClient(conn net.Conn) {
 	}
 	srv.registerClientCh <- client
 	go client.readInput()
-	// go client.listenForMessages()
+	go client.listenForMessages()
 }
